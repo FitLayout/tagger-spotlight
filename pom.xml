@@ -57,6 +57,10 @@
 			<groupId>cz.vutbr.fit.layout</groupId>
 			<artifactId>layout-classify</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>
