@@ -47,6 +47,11 @@ public class DBPTagOccurrence extends TagOccurrence
         this.types = types;
     }
 
+    public boolean hasType(String type)
+    {
+        return types.contains(type);
+    }
+    
     @Override
     public String toString()
     {

@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -50,6 +49,7 @@ public class SpotlightClient
             String params = "text=" + URLEncoder.encode(text, "UTF-8")
                             + "&confiednce=0"
                             + "&support=0";
+            System.out.println("PARAMS " + params);
             byte[] postData = params.getBytes(StandardCharsets.UTF_8);
             URL reqUrl = new URL(url, "/rest/annotate");
             
@@ -71,8 +71,13 @@ public class SpotlightClient
             BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
             JsonParser parser = new JsonParser();
             JsonElement root = parser.parse(reader);
-            List<DBPTagOccurrence> occlist = decodeJsonOccurences(root);
-            return occlist;
+            if (root != null && root.isJsonObject())
+            {
+                List<DBPTagOccurrence> occlist = decodeJsonOccurences(root.getAsJsonObject());
+                return occlist;
+            }
+            else
+                return Collections.emptyList();
         } catch (MalformedURLException e) {
             e.printStackTrace();
             return Collections.emptyList();
@@ -83,13 +88,13 @@ public class SpotlightClient
         
     }
     
-    private List<DBPTagOccurrence> decodeJsonOccurences(JsonElement root)
+    private List<DBPTagOccurrence> decodeJsonOccurences(JsonObject root)
     {
-        final JsonArray resources = root.getAsJsonObject().get("Resources").getAsJsonArray();
-        if (resources != null)
+        final JsonElement resources = root.get("Resources");
+        if (resources != null && resources.isJsonArray())
         {
-            List<DBPTagOccurrence> ret = new ArrayList<>(resources.size());
-            for (JsonElement itemElement : resources)
+            List<DBPTagOccurrence> ret = new ArrayList<>(resources.getAsJsonArray().size());
+            for (JsonElement itemElement : resources.getAsJsonArray())
             {
                 JsonObject item = itemElement.getAsJsonObject();
                 String text = item.get("@surfaceForm").getAsString();
