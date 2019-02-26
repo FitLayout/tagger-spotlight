@@ -14,8 +14,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 /**
@@ -27,12 +32,17 @@ public class SpotlightClient
     private URL url;
     
     
-    public SpotlightClient(String urlString) throws MalformedURLException
+    public SpotlightClient(URL url)
     {
-        url = new URL(urlString);
+        this.url = url;
     }
 
-    public void annotate(String text)
+    public SpotlightClient(String urlString) throws MalformedURLException
+    {
+        this.url = new URL(urlString);
+    }
+
+    public List<DBPTagOccurrence> annotate(String text)
     {
         try
         {
@@ -61,16 +71,42 @@ public class SpotlightClient
             BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
             JsonParser parser = new JsonParser();
             JsonElement root = parser.parse(reader);
-            System.out.println(root);
-            reader.close();
-
+            List<DBPTagOccurrence> occlist = decodeJsonOccurences(root);
+            return occlist;
         } catch (MalformedURLException e) {
             e.printStackTrace();
+            return Collections.emptyList();
         } catch (IOException e) {
             e.printStackTrace();
+            return Collections.emptyList();
         }
         
     }
+    
+    private List<DBPTagOccurrence> decodeJsonOccurences(JsonElement root)
+    {
+        final JsonArray resources = root.getAsJsonObject().get("Resources").getAsJsonArray();
+        if (resources != null)
+        {
+            List<DBPTagOccurrence> ret = new ArrayList<>(resources.size());
+            for (JsonElement itemElement : resources)
+            {
+                JsonObject item = itemElement.getAsJsonObject();
+                String text = item.get("@surfaceForm").getAsString();
+                int position = item.get("@offset").getAsInt();
+                float support = item.get("@similarityScore").getAsFloat();
+                String uri = item.get("@URI").getAsString();
+                String typestr = item.get("@types").getAsString();
+                String[] types = typestr.split(",");
+                DBPTagOccurrence occ = new DBPTagOccurrence(text, position, support, uri, types);
+                ret.add(occ);
+            }
+            return ret;
+        }
+        else
+            return Collections.emptyList();
+    }
+    
  
     public static void main(String[] args) 
     {
@@ -79,7 +115,8 @@ public class SpotlightClient
             final String text = "Brazilian state-run giant oil company Petrobras signed a three-year technology and research cooperation agreement with oil service provider Halliburton.";
             
             SpotlightClient client = new SpotlightClient("http://localhost:2222");
-            client.annotate(text);
+            List<DBPTagOccurrence> occurrences = client.annotate(text);
+            System.out.println(occurrences);
             
         } catch (MalformedURLException e) {
             e.printStackTrace();
