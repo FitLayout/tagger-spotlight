@@ -157,7 +157,8 @@ public class SpotlightConceptTagger extends BaseTagger
         
         //annotate the text
         SpotlightClient client = new SpotlightClient(serverUrl);
-        List<DBPTagOccurrence> occlist = client.annotate(completeText.toString());
+        final String text = completeText.toString()/*.replaceAll("\\s+", " ")*/;
+        List<DBPTagOccurrence> occlist = client.annotate(text);
         
         //match the occurrences and the areas
         ocurrences = new HashMap<>();

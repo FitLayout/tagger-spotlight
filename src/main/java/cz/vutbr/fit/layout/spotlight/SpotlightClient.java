@@ -47,7 +47,7 @@ public class SpotlightClient
         {
             //setup parametres
             String params = "text=" + URLEncoder.encode(text, "UTF-8")
-                            + "&confiednce=0"
+                            + "&confidence=0"
                             + "&support=0";
             System.out.println("PARAMS " + params);
             byte[] postData = params.getBytes(StandardCharsets.UTF_8);
