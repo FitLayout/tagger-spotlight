@@ -102,8 +102,8 @@ public class SpotlightConceptTagger extends BaseTagger
             List<TagOccurrence> occlist = ocurrences.get(node);
             if (occlist != null)
             {
-                //some ocurrences found, return the maximal support
-                float max = 0.0f;
+                //some ocurrences found, return the maximal support (but at least 0.1)
+                float max = 0.1f;
                 for (TagOccurrence occ : occlist)
                     if (occ.getSupport() > max)
                         max = occ.getSupport();
@@ -194,6 +194,8 @@ public class SpotlightConceptTagger extends BaseTagger
             completeText.append(text);
             ii.end = completeText.length();
             offsetIndex.add(ii);
+            //separate the individual areas so that Spotlight is able to recognize them
+            completeText.append(" ");
         }
         else
         {
@@ -207,6 +209,11 @@ public class SpotlightConceptTagger extends BaseTagger
         public int start;
         public int end;
         public Area area;
+        
+        public String toString()
+        {
+            return "<" + start + ":" + end + ":" + ((area == null) ? "?" : area.getText()) + ">";
+        }
     }
     
 }
